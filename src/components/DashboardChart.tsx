@@ -13,17 +13,12 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 
-const data = [
-  { name: 'Yan', total: 12000000 },
-  { name: 'Fev', total: 21000000 },
-  { name: 'Mar', total: 8000000 },
-  { name: 'Apr', total: 16000000 },
-  { name: 'May', total: 9000000 },
-  { name: 'Iyun', total: 17000000 },
-  { name: 'Iyul', total: 24000000 },
-];
+interface ChartData {
+  name: string;
+  total: number;
+}
 
-export default function DashboardChart() {
+export default function DashboardChart({ data = [] }: { data?: ChartData[] }) {
   const { theme } = useTheme();
   const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
@@ -82,7 +77,7 @@ export default function DashboardChart() {
                 boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
               }}
               itemStyle={{ color: '#6366f1', fontWeight: 'bold' }}
-              formatter={(value: number) => [`${value.toLocaleString()} so'm`, 'Tushum']}
+              formatter={(value: any) => [`${(value || 0).toLocaleString()} so'm`, 'Tushum']}
             />
             <Area 
               type="monotone" 

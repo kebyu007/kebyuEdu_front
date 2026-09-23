@@ -18,6 +18,7 @@ const translations: Translations = {
   "nav.teachers": { uz: "O'qituvchilar", ru: "Учителя", en: "Teachers" },
   "nav.groups": { uz: "Guruhlar", ru: "Группы", en: "Groups" },
   "nav.students": { uz: "Talabalar", ru: "Студенты", en: "Students" },
+  "nav.payments": { uz: "To'lovlar", ru: "Оплаты", en: "Payments" },
   "nav.gifts": { uz: "Sovg'alar", ru: "Подарки", en: "Gifts" },
   "nav.settings": { uz: "Boshqarish", ru: "Настройки", en: "Settings" },
   
@@ -37,9 +38,9 @@ const translations: Translations = {
   "topbar.search": { uz: "Qidirish...", ru: "Поиск...", en: "Search..." },
   "topbar.admin": { uz: "Admin", ru: "Админ", en: "Admin" },
 
-  // Dashboard Page
-  "dash.hello": { uz: "Salom, Abduxoshim Sultonqulov!", ru: "Привет, Абдухошим Султонкулов!", en: "Hello, Abduxoshim Sultonqulov!" },
-  "dash.welcome": { uz: "KebyuEdu platformasiga xush kelibsiz!", ru: "Добро пожаловать на платформу KebyuEdu!", en: "Welcome to the KebyuEdu platform!" },
+  // Dashboard
+  "dash.hello": { uz: "Salom", ru: "Привет", en: "Hello" },
+  "dash.welcome": { uz: "KebyuEdu platformasiga xush kelibsiz!", ru: "Добро пожаловать на платформу KebyuEdu!", en: "Welcome to KebyuEdu platform!" },
   
   // StatCards
   "stat.active_students": { uz: "Faol talabalar", ru: "Активные студенты", en: "Active students" },
@@ -56,6 +57,11 @@ const translations: Translations = {
   "acc.profit.desc": { uz: "Yillik moliyaviy hisobot va sof foyda statistikasi.", ru: "Годовой финансовый отчет и статистика чистой прибыли.", en: "Annual financial report and net profit statistics." },
   "acc.schedule": { uz: "Dars jadvali", ru: "Расписание занятий", en: "Class schedule" },
   "acc.schedule.desc": { uz: "Bugungi va haftalik dars jadvallari ro'yxati.", ru: "Список расписаний занятий на сегодня и неделю.", en: "List of class schedules for today and the week." },
+
+  // Payments
+  "pay.method.CASH": { uz: "Naqd", ru: "Наличными", en: "Cash" },
+  "pay.method.CARD": { uz: "Plastik", ru: "Карта", en: "Card" },
+  "pay.method.TRANSFER": { uz: "O'tkazma", ru: "Перевод", en: "Transfer" },
 
   // Chart
   "chart.revenue": { uz: "Oylik tushumlar statistikasi", ru: "Статистика ежемесячных доходов", en: "Monthly Revenue Statistics" }

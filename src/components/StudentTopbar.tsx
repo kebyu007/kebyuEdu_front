@@ -9,32 +9,31 @@ import {
   Menu,
   Check,
   User,
-  LogOut
+  LogOut,
+  Diamond
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/context/LanguageContext";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-export default function Topbar() {
+export default function StudentTopbar() {
   const { theme, setTheme } = useTheme();
-  const { lang, setLang, t } = useLanguage();
+  const { lang, setLang } = useLanguage();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   
-  const [userRole, setUserRole] = useState("SUPERADMIN");
-  const [userName, setUserName] = useState("Kebyu Edu");
+  const [userName, setUserName] = useState("O'quvchi");
   const [userPhoto, setUserPhoto] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
     if (typeof window !== "undefined") {
-      setUserRole(localStorage.getItem("user_role") || "SUPERADMIN");
-      const fName = localStorage.getItem("first_name") || "";
-      const lName = localStorage.getItem("last_name") || "";
-      if (fName || lName) setUserName(`${fName} ${lName}`.trim());
+      const storedName = localStorage.getItem("user_name");
+      if (storedName) setUserName(storedName);
       
       const photo = localStorage.getItem("user_photo");
       if (photo && photo !== "null" && photo !== "undefined") {
@@ -84,7 +83,7 @@ export default function Topbar() {
 
       {/* Right side: Actions & Profile */}
       <div className="flex items-center gap-4">
-        
+
         {/* Actions Pill Container */}
         <div className="hidden sm:flex items-center bg-white/60 dark:bg-[#151A27]/80 backdrop-blur-md border border-slate-200/50 dark:border-white/5 rounded-full p-2 shadow-sm">
           
@@ -101,85 +100,90 @@ export default function Topbar() {
 
             {/* Dropdown Menu */}
             {langMenuOpen && (
-              <div className="absolute top-full right-0 mt-3 w-36 bg-white/90 dark:bg-[#0f1523]/90 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden py-2 z-50 animate-in fade-in slide-in-from-top-2">
-                {(["uz", "ru", "en"] as const).map((l) => (
+              <div className="absolute top-full right-0 mt-2 w-40 bg-white dark:bg-[#151A27] border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden py-2 animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+                {(['uz', 'ru', 'en'] as const).map((l) => (
                   <button
                     key={l}
-                    onClick={() => { setLang(l); setLangMenuOpen(false); }}
-                    className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors font-medium"
+                    onClick={() => {
+                      setLang(l);
+                      setLangMenuOpen(false);
+                    }}
+                    className="w-full px-4 py-2.5 flex items-center justify-between text-sm hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                   >
-                    {{ uz: "O'zbekcha", ru: "Русский", en: "English" }[l]}
-                    {lang === l && <Check size={14} className="text-indigo-500" />}
+                    <span className={`font-semibold ${lang === l ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-300'}`}>
+                      {{ uz: "O'zbekcha", ru: "Русский", en: "English" }[l]}
+                    </span>
+                    {lang === l && <Check size={16} className="text-indigo-600 dark:text-indigo-400" />}
                   </button>
                 ))}
               </div>
             )}
           </div>
 
-          <div className="h-5 w-px bg-slate-200 dark:bg-white/10 mx-1.5" />
+          <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-2" />
+
+          {/* Theme Toggle */}
+          {mounted && (
+            <button 
+              onClick={toggleTheme}
+              className="w-10 h-10 flex items-center justify-center rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-white/5 transition-colors"
+            >
+              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+          )}
 
           {/* Notifications */}
-          <button className="relative p-2.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-full transition-colors group">
-            <Bell size={20} className="group-hover:animate-wiggle" />
-            <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full shadow-[0_0_5px_rgba(239,68,68,0.8)]"></span>
-          </button>
-          
-          <div className="h-5 w-px bg-slate-200 dark:bg-white/10 mx-1.5" />
-
-          {/* Dark Mode Toggle */}
-          <button 
-            onClick={toggleTheme}
-            className="p-2.5 text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/10 rounded-full transition-all"
-          >
-            {mounted && theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+          <button className="w-10 h-10 flex items-center justify-center rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-white/5 transition-colors relative">
+            <Bell size={20} />
+            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border border-white dark:border-[#151A27]"></span>
           </button>
         </div>
 
-        {/* User Profile Pill Container */}
+        {/* Profile Dropdown */}
         <div className="relative">
           <button 
             onClick={() => setProfileMenuOpen(!profileMenuOpen)}
             onBlur={() => setTimeout(() => setProfileMenuOpen(false), 200)}
-            className="flex items-center gap-3 p-1.5 pr-6 bg-white/60 dark:bg-[#151A27]/80 backdrop-blur-md border border-slate-200/50 dark:border-white/5 rounded-full hover:bg-white/80 dark:hover:bg-[#1A2035] transition-all shadow-sm"
+            className="flex items-center gap-3 pl-2 pr-4 py-2 bg-white/60 dark:bg-[#151A27]/80 backdrop-blur-md border border-slate-200/50 dark:border-white/5 rounded-full hover:bg-white dark:hover:bg-[#1A2035] transition-colors shadow-sm"
           >
-            {userPhoto ? (
-               <img src={userPhoto} alt="Profile" className="w-10 h-10 rounded-full object-cover border border-white/10 shadow-inner" />
-            ) : (
-               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-[0_0_10px_rgba(99,102,241,0.3)] dark:shadow-[0_0_10px_rgba(99,102,241,0.5)]">
-                 {userName.charAt(0)}
-               </div>
-            )}
-            <div className="hidden md:block text-left">
-              <p className="text-[15px] font-bold text-slate-900 dark:text-white leading-none mb-1">{userName}</p>
-              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-widest leading-none uppercase">{userRole}</p>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-md overflow-hidden">
+              {userPhoto ? (
+                <img src={userPhoto} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                userName.charAt(0).toUpperCase()
+              )}
             </div>
+            <div className="hidden sm:flex flex-col items-start">
+              <span className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{userName}</span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">O'QUVCHI</span>
+            </div>
+            <ChevronDown size={16} className={`text-slate-400 dark:text-slate-500 transition-transform hidden sm:block ${profileMenuOpen ? 'rotate-180' : ''}`} />
           </button>
 
-          {/* Profile Dropdown Menu */}
+          {/* Profile Menu */}
           {profileMenuOpen && (
-            <div className="absolute top-full right-0 mt-3 w-48 bg-white/90 dark:bg-[#0f1523]/90 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden py-2 z-50 animate-in fade-in slide-in-from-top-2">
-              <div className="px-4 py-2 border-b border-slate-100 dark:border-white/5 mb-1">
+            <div className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-[#151A27] border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden py-2 animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+              <div className="px-4 py-3 border-b border-slate-100 dark:border-white/5 mb-2">
                 <p className="text-sm font-bold text-slate-900 dark:text-white">{userName}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase">{userRole}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">O'quvchi</p>
               </div>
-              <button
-                onClick={() => router.push("/dashboard/profile")}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors font-medium"
-              >
-                <User size={16} />
-                Profil
-              </button>
-              <button
+              
+              <Link href="/student-dashboard/profile" className="w-full px-4 py-2.5 flex items-center gap-3 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                <User size={18} className="text-slate-400" />
+                Mening profilim
+              </Link>
+              
+              <button 
                 onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors font-medium"
+                className="w-full px-4 py-2.5 flex items-center gap-3 text-sm font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
               >
-                <LogOut size={16} />
-                Chiqish
+                <LogOut size={18} />
+                Tizimdan chiqish
               </button>
             </div>
           )}
         </div>
-
+        
       </div>
     </header>
   );
