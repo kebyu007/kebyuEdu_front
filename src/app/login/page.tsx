@@ -151,7 +151,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <form className="space-y-6" onSubmit={handleLogin}>
+            <div className="space-y-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300 ml-1">Telefon raqam</label>
                 <div className="relative group">
@@ -162,6 +162,7 @@ export default function LoginPage() {
                     type="text" 
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleLogin(e)}
                     placeholder="+998901234567" 
                     className="w-full pl-11 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                   />
@@ -187,6 +188,7 @@ export default function LoginPage() {
                     type={showPassword ? "text" : "password"} 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleLogin(e)}
                     placeholder="Parolingizni kiriting" 
                     className="w-full pl-11 pr-12 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                   />
@@ -202,7 +204,8 @@ export default function LoginPage() {
 
               <div className="pt-2">
                 <button 
-                  type="submit" 
+                  type="button" 
+                  onClick={handleLogin}
                   disabled={isLoading}
                   className="group relative w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-xl text-white font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0B0F19] focus:ring-blue-500 transition-all overflow-hidden shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] disabled:opacity-70 disabled:cursor-not-allowed"
                 >
@@ -213,7 +216,7 @@ export default function LoginPage() {
                   </span>
                 </button>
               </div>
-            </form>
+            </div>
 
             <div className="mt-8 text-center">
               <p className="text-xs text-slate-500">

@@ -118,8 +118,31 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
   const [isAddVideoModalOpen, setIsAddVideoModalOpen] = useState(false);
   const [uploadFiles, setUploadFiles] = useState<File[]>([]);
   const [uploadLessonId, setUploadLessonId] = useState<string>('');
+  const [videoTitle, setVideoTitle] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [isLessonSelectOpen, setIsLessonSelectOpen] = useState(false);
+
+  // Video Edit/Delete States
+  const [editVideoId, setEditVideoId] = useState<number | null>(null);
+  const [editVideoTitle, setEditVideoTitle] = useState("");
+  const [isEditVideoModalOpen, setIsEditVideoModalOpen] = useState(false);
+  const [activeVideoMenu, setActiveVideoMenu] = useState<number | null>(null);
+  const [isUpdatingVideo, setIsUpdatingVideo] = useState(false);
+
+  const [deleteVideoId, setDeleteVideoId] = useState<number | null>(null);
+  const [isDeleteVideoModalOpen, setIsDeleteVideoModalOpen] = useState(false);
+  const [isDeletingVideo, setIsDeletingVideo] = useState(false);
+
+  // Homework Edit/Delete States
+  const [editHomeworkId, setEditHomeworkId] = useState<number | null>(null);
+  const [editHomeworkTitle, setEditHomeworkTitle] = useState("");
+  const [isEditHomeworkModalOpen, setIsEditHomeworkModalOpen] = useState(false);
+  const [activeHomeworkMenu, setActiveHomeworkMenu] = useState<number | null>(null);
+  const [isUpdatingHomework, setIsUpdatingHomework] = useState(false);
+
+  const [deleteHomeworkId, setDeleteHomeworkId] = useState<number | null>(null);
+  const [isDeleteHomeworkModalOpen, setIsDeleteHomeworkModalOpen] = useState(false);
+  const [isDeletingHomework, setIsDeletingHomework] = useState(false);
 
   const handleFileChange = (e: any) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -145,6 +168,9 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
         formData.append("file", file);
         formData.append("lesson_id", uploadLessonId);
         formData.append("group_id", resolvedParams.id);
+        if (videoTitle) {
+          formData.append("title", videoTitle);
+        }
         
         await api.post("/lesson-videos", formData, {
           headers: { "Content-Type": "multipart/form-data" }
@@ -155,6 +181,7 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
       setIsAddVideoModalOpen(false);
       setUploadFiles([]);
       setUploadLessonId('');
+      setVideoTitle('');
       
       const videoRes: any = await api.get(`/groups/${resolvedParams.id}/lesson-videos`);
       if (videoRes) setLessonVideos(videoRes);
@@ -162,6 +189,76 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
       console.error(error);
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleUpdateVideo = async () => {
+    if (!editVideoId || !editVideoTitle) return;
+    try {
+      setIsUpdatingVideo(true);
+      await api.put(`/lesson-videos/${editVideoId}`, { title: editVideoTitle });
+      toast.success("Video nomi yangilandi!");
+      setIsEditVideoModalOpen(false);
+      setEditVideoId(null);
+      setEditVideoTitle("");
+      const videoRes: any = await api.get(`/groups/${resolvedParams.id}/lesson-videos`);
+      if (videoRes) setLessonVideos(videoRes);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsUpdatingVideo(false);
+    }
+  };
+
+  const confirmDeleteVideo = async () => {
+    if (!deleteVideoId) return;
+    try {
+      setIsDeletingVideo(true);
+      await api.delete(`/lesson-videos/${deleteVideoId}`);
+      toast.success("Video o'chirildi!");
+      setIsDeleteVideoModalOpen(false);
+      setDeleteVideoId(null);
+      const videoRes: any = await api.get(`/groups/${resolvedParams.id}/lesson-videos`);
+      if (videoRes) setLessonVideos(videoRes);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsDeletingVideo(false);
+    }
+  };
+
+  const handleUpdateHomework = async () => {
+    if (!editHomeworkId || !editHomeworkTitle) return;
+    try {
+      setIsUpdatingHomework(true);
+      await api.put(`/homeworks/${editHomeworkId}`, { title: editHomeworkTitle });
+      toast.success("Uy vazifasi nomi yangilandi!");
+      setIsEditHomeworkModalOpen(false);
+      setEditHomeworkId(null);
+      setEditHomeworkTitle("");
+      const hwRes: any = await api.get(`/groups/${resolvedParams.id}/homeworks`);
+      if (hwRes) setHomeworks(hwRes);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsUpdatingHomework(false);
+    }
+  };
+
+  const confirmDeleteHomework = async () => {
+    if (!deleteHomeworkId) return;
+    try {
+      setIsDeletingHomework(true);
+      await api.delete(`/homeworks/${deleteHomeworkId}`);
+      toast.success("Uy vazifasi o'chirildi!");
+      setIsDeleteHomeworkModalOpen(false);
+      setDeleteHomeworkId(null);
+      const hwRes: any = await api.get(`/groups/${resolvedParams.id}/homeworks`);
+      if (hwRes) setHomeworks(hwRes);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsDeletingHomework(false);
     }
   };
 
@@ -525,7 +622,8 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
                   <div className="flex flex-wrap items-center justify-center gap-6 py-4">
                     {group.groupTeachers.map((gt: any) => {
                       const t = gt.teacher;
-                      const photoUrl = t?.photo ? `http://localhost:3001/${t.photo.replace(/\\/g, '/')}` : null;
+                      const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001';
+                      const photoUrl = t?.photo ? `${backendUrl}/${t.photo.replace(/\\/g, '/')}` : null;
                       return (
                         <div key={gt.id || t?.id} className="flex flex-col items-center gap-2">
                           {photoUrl ? (
@@ -929,28 +1027,61 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
                 <div className="text-center py-8 text-slate-500">Uyga vazifalar topilmadi.</div>
               ) : (
                 homeworks.map(hw => (
-                  <div 
-                    key={hw.id} 
-                    onClick={() => router.push(`/dashboard/groups/${resolvedParams.id}/homework/${hw.id}/results`)}
-                    className="flex items-center px-6 py-5 bg-white/60 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-[1.25rem] shadow-[inset_0_2px_4px_rgba(255,255,255,0.4)] dark:shadow-none hover:shadow-lg hover:shadow-indigo-500/5 transition-all group cursor-pointer"
-                  >
-                    <div className="w-12 pl-2 text-sm font-semibold text-slate-500 dark:text-slate-400">{hw.id}</div>
-                    <div className="flex-1 text-sm font-bold text-slate-900 dark:text-white">{hw.topic}</div>
-                    <div className="w-16 flex justify-center text-sm font-semibold text-slate-600 dark:text-slate-300">{hw.users}</div>
-                    <div className="w-16 flex justify-center text-sm font-semibold text-amber-600 dark:text-amber-400">{hw.clock}</div>
-                    <div className="w-16 flex justify-center text-sm font-semibold text-emerald-600 dark:text-emerald-400">{hw.check}</div>
-                    <div className="w-40 text-sm font-medium text-slate-600 dark:text-slate-400">{formatDateTime(hw.assignedTime)}</div>
-                    <div className="w-40 text-sm font-medium text-slate-600 dark:text-slate-400">{formatDateTime(hw.endTime)}</div>
-                    <div className="w-32 text-sm font-medium text-slate-600 dark:text-slate-400">{formatDate(hw.date)}</div>
-                    <div className="w-10 flex justify-end">
-                      <button 
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-1 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors"
-                      >
-                        <MoreVertical size={20} />
-                      </button>
+                    <div 
+                      key={hw.id} 
+                      onClick={() => router.push(`/dashboard/groups/${resolvedParams.id}/homework/${hw.id}/results`)}
+                      className={`flex items-center px-6 py-5 bg-white/60 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-[1.25rem] shadow-[inset_0_2px_4px_rgba(255,255,255,0.4)] dark:shadow-none hover:shadow-lg hover:shadow-indigo-500/5 transition-all group cursor-pointer ${activeHomeworkMenu === hw.id ? "relative z-[60]" : "relative z-10"}`}
+                    >
+                      <div className="w-12 pl-2 text-sm font-semibold text-slate-500 dark:text-slate-400">{hw.id}</div>
+                      <div className="flex-1 text-sm font-bold text-slate-900 dark:text-white">{hw.topic}</div>
+                      <div className="w-16 flex justify-center text-sm font-semibold text-slate-600 dark:text-slate-300">{hw.users}</div>
+                      <div className="w-16 flex justify-center text-sm font-semibold text-amber-600 dark:text-amber-400">{hw.clock}</div>
+                      <div className="w-16 flex justify-center text-sm font-semibold text-emerald-600 dark:text-emerald-400">{hw.check}</div>
+                      <div className="w-40 text-sm font-medium text-slate-600 dark:text-slate-400">{formatDateTime(hw.assignedTime)}</div>
+                      <div className="w-40 text-sm font-medium text-slate-600 dark:text-slate-400">{formatDateTime(hw.endTime)}</div>
+                      <div className="w-32 text-sm font-medium text-slate-600 dark:text-slate-400">{formatDate(hw.date)}</div>
+                      <div className="w-10 flex justify-end relative">
+                        {(userRole === 'ADMIN' || userRole === 'SUPERADMIN') ? (
+                          <>
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); setActiveHomeworkMenu(activeHomeworkMenu === hw.id ? null : hw.id); }}
+                              className="p-1 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors"
+                            >
+                              <MoreVertical size={20} />
+                            </button>
+                            {activeHomeworkMenu === hw.id && (
+                              <div className="absolute top-full right-0 mt-2 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl shadow-lg z-50 overflow-hidden py-1">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditHomeworkId(hw.id);
+                                    setEditHomeworkTitle(hw.topic);
+                                    setIsEditHomeworkModalOpen(true);
+                                    setActiveHomeworkMenu(null);
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                                >
+                                  Tahrirlash
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDeleteHomeworkId(hw.id);
+                                    setIsDeleteHomeworkModalOpen(true);
+                                    setActiveHomeworkMenu(null);
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                                >
+                                  O'chirish
+                                </button>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="w-6 h-6"></div>
+                        )}
+                      </div>
                     </div>
-                  </div>
                 ))
               )}
             </div>
@@ -958,7 +1089,7 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
           )}
 
           {darslikTab === "Videolar" && (
-            <div className="w-full overflow-x-auto pb-4 animate-in fade-in duration-200">
+            <div className="w-full overflow-x-auto pb-32 animate-in fade-in duration-200">
               <div className="min-w-[900px] space-y-3">
                 {/* Header row */}
                 <div className="flex items-center px-6 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
@@ -980,7 +1111,7 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
                     <div 
                       key={vid.id} 
                       onClick={() => { setActiveVideo(vid); setIsVideoModalOpen(true); }}
-                      className="flex items-center px-6 py-5 bg-white/60 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-[1.25rem] shadow-[inset_0_2px_4px_rgba(255,255,255,0.4)] dark:shadow-none hover:shadow-lg hover:shadow-indigo-500/5 transition-all group cursor-pointer"
+                      className={`flex items-center px-6 py-5 bg-white/60 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-[1.25rem] shadow-[inset_0_2px_4px_rgba(255,255,255,0.4)] dark:shadow-none hover:shadow-lg hover:shadow-indigo-500/5 transition-all group cursor-pointer ${activeVideoMenu === vid.id ? "relative z-[60]" : "relative z-10"}`}
                     >
                       <div className="w-12 pl-2 text-sm font-semibold text-slate-500 dark:text-slate-400">{vid.id}</div>
                       <div className="w-48 flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
@@ -994,13 +1125,46 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
                       <div className="w-32 flex justify-center text-sm font-medium text-slate-600 dark:text-slate-400">{formatDate(vid.date)}</div>
                       <div className="w-24 flex justify-center text-sm font-medium text-slate-600 dark:text-slate-400">{vid.size}</div>
                       <div className="w-40 flex justify-center text-sm font-medium text-slate-600 dark:text-slate-400">{formatDateTime(vid.added)}</div>
-                      <div className="w-10 flex justify-end">
-                        <button 
-                          onClick={(e) => e.stopPropagation()}
-                          className="p-1 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors"
-                        >
-                          <MoreVertical size={20} />
-                        </button>
+                      <div className="w-10 flex justify-end relative">
+                        {(userRole === 'ADMIN' || userRole === 'SUPERADMIN') ? (
+                          <>
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); setActiveVideoMenu(activeVideoMenu === vid.id ? null : vid.id); }}
+                              className="p-1 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors"
+                            >
+                              <MoreVertical size={20} />
+                            </button>
+                            {activeVideoMenu === vid.id && (
+                              <div className="absolute top-full right-0 mt-2 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl shadow-lg z-50 overflow-hidden py-1">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditVideoId(vid.id);
+                                    setEditVideoTitle(vid.name);
+                                    setIsEditVideoModalOpen(true);
+                                    setActiveVideoMenu(null);
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                                >
+                                  Tahrirlash
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDeleteVideoId(vid.id);
+                                    setIsDeleteVideoModalOpen(true);
+                                    setActiveVideoMenu(null);
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                                >
+                                  O'chirish
+                                </button>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="w-6 h-6"></div>
+                        )}
                       </div>
                     </div>
                   ))
@@ -1396,7 +1560,7 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
             {/* Video Player Edge to Edge */}
             <div className="aspect-video bg-black/80 w-full relative">
               <video 
-                src={activeVideo.url ? `http://localhost:3001/${activeVideo.url.replace(/\\/g, '/')}` : ''} 
+                src={activeVideo.url ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001'}/${activeVideo.url.replace(/\\/g, '/')}` : ''} 
                 controls 
                 className="w-full h-full object-contain" 
                 autoPlay 
@@ -1445,6 +1609,20 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
             {/* Modal Body */}
             <div className="p-6">
               
+              {/* Title Selection */}
+              <div className="mb-6 relative">
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                  Video sarlavhasi (Ixtiyoriy)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Masalan: 1-dars videosi"
+                  value={videoTitle}
+                  onChange={(e) => setVideoTitle(e.target.value)}
+                  className="w-full px-4 py-3.5 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all shadow-sm hover:border-emerald-500/30"
+                />
+              </div>
+
               {/* Lesson Selection */}
               <div className="mb-6 relative">
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
@@ -1562,6 +1740,140 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
                 className="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white text-sm font-bold transition-all shadow-[0_8px_16px_rgba(16,185,129,0.25)] transform hover:scale-[1.02]"
               >
                 {isUploading ? "Yuklanmoqda..." : "Fayllarni yuklash"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Video Modal */}
+      {isEditVideoModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsEditVideoModalOpen(false)} />
+          <div className="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-white/5">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Videoni tahrirlash</h3>
+              <button onClick={() => setIsEditVideoModalOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                Video sarlavhasi
+              </label>
+              <input
+                type="text"
+                value={editVideoTitle}
+                onChange={(e) => setEditVideoTitle(e.target.value)}
+                className="w-full px-4 py-3 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all shadow-sm"
+              />
+            </div>
+            
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 dark:border-white/5">
+              <button onClick={() => setIsEditVideoModalOpen(false)} className="px-6 py-2.5 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 transition-colors">Bekor qilish</button>
+              <button onClick={handleUpdateVideo} disabled={isUpdatingVideo} className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-sm shadow-lg shadow-indigo-500/30 hover:bg-indigo-700 transition-all flex items-center justify-center gap-2">
+                {isUpdatingVideo ? "Saqlanmoqda..." : "Saqlash"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Video Modal */}
+      {isDeleteVideoModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsDeleteVideoModalOpen(false)} />
+          <div className="relative bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-500/20 text-red-500 flex items-center justify-center mx-auto mb-4 border-4 border-red-50 dark:border-red-500/10">
+                <AlertCircle size={32} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Videoni o'chirish</h3>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                Haqiqatan ham ushbu videoni butunlay o'chirib tashlamoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 px-6 py-4 bg-slate-50/50 dark:bg-white/5 border-t border-slate-100 dark:border-white/5">
+              <button 
+                onClick={() => setIsDeleteVideoModalOpen(false)} 
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                Bekor qilish
+              </button>
+              <button 
+                onClick={confirmDeleteVideo} 
+                disabled={isDeletingVideo} 
+                className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white font-bold text-sm shadow-lg shadow-red-500/30 transition-all flex items-center justify-center gap-2"
+              >
+                {isDeletingVideo ? "O'chirilmoqda..." : "Ha, o'chirish"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Homework Modal */}
+      {isEditHomeworkModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsEditHomeworkModalOpen(false)} />
+          <div className="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-white/5">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Uy vazifasini tahrirlash</h3>
+              <button onClick={() => setIsEditHomeworkModalOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                Mavzu (Sarlavha)
+              </label>
+              <input
+                type="text"
+                value={editHomeworkTitle}
+                onChange={(e) => setEditHomeworkTitle(e.target.value)}
+                className="w-full px-4 py-3 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all shadow-sm"
+              />
+            </div>
+            
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 dark:border-white/5">
+              <button onClick={() => setIsEditHomeworkModalOpen(false)} className="px-6 py-2.5 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 transition-colors">Bekor qilish</button>
+              <button onClick={handleUpdateHomework} disabled={isUpdatingHomework} className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-sm shadow-lg shadow-indigo-500/30 hover:bg-indigo-700 transition-all flex items-center justify-center gap-2">
+                {isUpdatingHomework ? "Saqlanmoqda..." : "Saqlash"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Homework Modal */}
+      {isDeleteHomeworkModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsDeleteHomeworkModalOpen(false)} />
+          <div className="relative bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-500/20 text-red-500 flex items-center justify-center mx-auto mb-4 border-4 border-red-50 dark:border-red-500/10">
+                <AlertCircle size={32} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Vazifani o'chirish</h3>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                Haqiqatan ham ushbu uy vazifasini va unga biriktirilgan barcha o'quvchilar javoblarini butunlay o'chirib tashlamoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 px-6 py-4 bg-slate-50/50 dark:bg-white/5 border-t border-slate-100 dark:border-white/5">
+              <button 
+                onClick={() => setIsDeleteHomeworkModalOpen(false)} 
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                Bekor qilish
+              </button>
+              <button 
+                onClick={confirmDeleteHomework} 
+                disabled={isDeletingHomework} 
+                className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white font-bold text-sm shadow-lg shadow-red-500/30 transition-all flex items-center justify-center gap-2"
+              >
+                {isDeletingHomework ? "O'chirilmoqda..." : "Ha, o'chirish"}
               </button>
             </div>
           </div>

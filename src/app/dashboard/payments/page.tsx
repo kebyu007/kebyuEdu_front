@@ -33,6 +33,7 @@ export default function PaymentsPage() {
   const [monthFilter, setMonthFilter] = useState("");
   
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [drawerTab, setDrawerTab] = useState<"PAYMENT" | "CHARGE">("PAYMENT");
   const [isSaving, setIsSaving] = useState(false);
   const [isStudentSelectOpen, setIsStudentSelectOpen] = useState(false);
   const [studentSearch, setStudentSearch] = useState("");
@@ -110,15 +111,25 @@ export default function PaymentsPage() {
 
     setIsSaving(true);
     try {
-      await api.post('/payments', {
-        student_id: Number(formData.student_id),
-        amount: Number(formData.amount),
-        method: formData.method,
-        month: formData.month,
-        comment: formData.comment
-      });
+      if (drawerTab === "PAYMENT") {
+        await api.post('/payments', {
+          student_id: Number(formData.student_id),
+          amount: Number(formData.amount),
+          method: formData.method,
+          month: formData.month,
+          comment: formData.comment
+        });
+        toast.success("To'lov muvaffaqiyatli qabul qilindi!");
+      } else {
+        await api.post('/payments/charge', {
+          student_id: Number(formData.student_id),
+          amount: Number(formData.amount),
+          month: formData.month,
+          comment: formData.comment
+        });
+        toast.success("O'quvchi balansidan muvaffaqiyatli yechib olindi (Qarz yozildi)!");
+      }
       
-      toast.success("To'lov muvaffaqiyatli qabul qilindi!");
       setIsDrawerOpen(false);
       setIsStudentSelectOpen(false);
       setFormData({
@@ -129,6 +140,7 @@ export default function PaymentsPage() {
         comment: ""
       });
       fetchPayments();
+      fetchStudents(); // Refresh students to get updated balances
     } catch (error) {
       console.error(error);
     } finally {
@@ -407,9 +419,11 @@ export default function PaymentsPage() {
         <div className="flex items-start justify-between p-8 pb-6 border-b border-slate-200/60 dark:border-white/5">
           <div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-              To'lov qabul qilish
+              {drawerTab === "PAYMENT" ? "To'lov qabul qilish" : "Qarz yozish (Yechish)"}
             </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Yangi to'lovni tizimga kiritish</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              {drawerTab === "PAYMENT" ? "Yangi to'lovni tizimga kiritish" : "O'quvchi balansidan oylik to'lovni ushlab qolish"}
+            </p>
           </div>
           <button
             onClick={() => setIsDrawerOpen(false)}
@@ -417,6 +431,32 @@ export default function PaymentsPage() {
           >
             <X size={20} />
           </button>
+        </div>
+
+        {/* Tab Switcher */}
+        <div className="px-8 pt-6">
+          <div className="flex p-1 bg-slate-100 dark:bg-white/5 rounded-xl">
+            <button
+              onClick={() => setDrawerTab("PAYMENT")}
+              className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${
+                drawerTab === "PAYMENT" 
+                  ? "bg-white dark:bg-[#1a2333] text-indigo-600 dark:text-indigo-400 shadow-sm" 
+                  : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              }`}
+            >
+              To'lov qabul qilish
+            </button>
+            <button
+              onClick={() => setDrawerTab("CHARGE")}
+              className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${
+                drawerTab === "CHARGE" 
+                  ? "bg-white dark:bg-[#1a2333] text-rose-600 dark:text-rose-400 shadow-sm" 
+                  : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              }`}
+            >
+              Qarz yozish (Yechish)
+            </button>
+          </div>
         </div>
 
         {/* Form */}
@@ -478,8 +518,19 @@ export default function PaymentsPage() {
                             }}
                             className="px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 cursor-pointer transition-colors flex items-center justify-between"
                           >
-                            <span>{st.first_name} {st.last_name}</span>
-                            <span className="text-xs text-slate-400 font-normal">{st.phone}</span>
+                            <div className="flex flex-col">
+                              <span>{st.first_name} {st.last_name}</span>
+                              <span className="text-xs text-slate-400 font-normal">{st.phone}</span>
+                            </div>
+                            <span className={`text-xs font-bold px-2 py-1 rounded-md ${
+                              Number(st.balance) < 0 
+                                ? 'bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400' 
+                                : Number(st.balance) > 0 
+                                  ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400' 
+                                  : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                            }`}>
+                              {Number(st.balance).toLocaleString()} so'm
+                            </span>
                           </div>
                         ))
                       )}
@@ -509,28 +560,30 @@ export default function PaymentsPage() {
               </div>
             </div>
 
-            {/* Method */}
-            <div>
-              <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wider">
-                To'lov turi <span className="text-red-500">*</span>
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                {['CASH', 'CARD', 'TRANSFER'].map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, method: m })}
-                    className={`py-2.5 rounded-xl border text-xs font-bold transition-all ${
-                      formData.method === m
-                        ? "border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.15)]"
-                        : "border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 text-slate-500 hover:bg-slate-50 dark:hover:bg-white/10"
-                    }`}
-                  >
-                    {t(`pay.method.${m}`)}
-                  </button>
-                ))}
+            {/* Method (Only for PAYMENT) */}
+            {drawerTab === "PAYMENT" && (
+              <div>
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wider">
+                  To'lov turi <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {['CASH', 'CARD', 'TRANSFER'].map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, method: m })}
+                      className={`py-2.5 rounded-xl border text-xs font-bold transition-all ${
+                        formData.method === m
+                          ? "border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.15)]"
+                          : "border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 text-slate-500 hover:bg-slate-50 dark:hover:bg-white/10"
+                      }`}
+                    >
+                      {t(`pay.method.${m}`)}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Month */}
             <div>
@@ -578,10 +631,18 @@ export default function PaymentsPage() {
             type="submit"
             form="payment-form"
             disabled={isSaving}
-            className="px-6 py-3 rounded-xl text-sm font-semibold bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-[0_8px_16px_rgba(99,102,241,0.3)] transition-all transform hover:scale-[1.02] disabled:opacity-70 flex items-center justify-center gap-2"
+            className={`px-6 py-3 rounded-xl text-sm font-semibold text-white shadow-lg transition-all transform hover:scale-[1.02] disabled:opacity-70 flex items-center justify-center gap-2 ${
+              drawerTab === "PAYMENT"
+                ? "bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 shadow-indigo-500/30"
+                : "bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 shadow-rose-500/30"
+            }`}
           >
-            <Check size={18} />
-            <span>{isSaving ? "Saqlanmoqda..." : "Saqlash"}</span>
+            {isSaving ? (
+              <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+            ) : (
+              <Check size={18} />
+            )}
+            <span>{isSaving ? "Bajarilmoqda..." : (drawerTab === "PAYMENT" ? "To'lovni saqlash" : "Qarz yozish")}</span>
           </button>
         </div>
       </div>

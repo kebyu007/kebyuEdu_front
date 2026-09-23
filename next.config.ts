@@ -15,8 +15,15 @@ const nextConfig: NextConfig = {
         port: "3001",
         pathname: "/uploads/**",
       },
+      {
+        protocol: "http",
+        hostname: "10.10.3.80",
+        port: "3001",
+        pathname: "/uploads/**",
+      },
     ],
   },
+  allowedDevOrigins: ['10.10.3.80'],
 };
 
 export default nextConfig;
