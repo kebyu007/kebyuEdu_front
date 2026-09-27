@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
-import api from "@/services/api";
+import api, { API_BASE_URL } from "@/services/api";
 
 export default function Topbar() {
   const { theme, setTheme } = useTheme();
@@ -47,7 +47,7 @@ export default function Topbar() {
       if (photo && photo !== "null" && photo !== "undefined") {
         const cleanPhoto = photo.replace(/\\/g, '/');
         const photoPath = cleanPhoto.startsWith('/') ? cleanPhoto : `/${cleanPhoto}`;
-        const baseUrl = `http://${window.location.hostname}:3001`;
+        const baseUrl = API_BASE_URL.replace('/api/v1', '');
         setUserPhoto(`${baseUrl}${photoPath}`);
       }
 
@@ -67,7 +67,7 @@ export default function Topbar() {
       // WebSocket connection
       const userId = localStorage.getItem("user_id");
       if (userId) {
-        const baseUrl = `http://${window.location.hostname}:3001`;
+        const baseUrl = API_BASE_URL.replace('/api/v1', '');
         const socket = io(baseUrl, {
           query: { userId }
         });
@@ -228,7 +228,12 @@ export default function Topbar() {
             className="flex items-center gap-3 p-1.5 pr-6 bg-white/60 dark:bg-[#151A27]/80 backdrop-blur-md border border-slate-200/50 dark:border-white/5 rounded-full hover:bg-white/80 dark:hover:bg-[#1A2035] transition-all shadow-sm"
           >
             {userPhoto ? (
-               <img src={userPhoto} alt="Profile" className="w-10 h-10 rounded-full object-cover border border-white/10 shadow-inner" />
+               <img 
+                 src={userPhoto} 
+                 alt="Profile" 
+                 onError={() => setUserPhoto(null)}
+                 className="w-10 h-10 rounded-full object-cover border border-white/10 shadow-inner" 
+               />
             ) : (
                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-[0_0_10px_rgba(99,102,241,0.3)] dark:shadow-[0_0_10px_rgba(99,102,241,0.5)]">
                  {userName.charAt(0)}

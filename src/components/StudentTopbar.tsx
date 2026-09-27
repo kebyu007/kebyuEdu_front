@@ -19,7 +19,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
-import api from "@/services/api";
+import api, { API_BASE_URL } from "@/services/api";
 
 export default function StudentTopbar() {
   const { theme, setTheme } = useTheme();
@@ -45,7 +45,7 @@ export default function StudentTopbar() {
       if (photo && photo !== "null" && photo !== "undefined") {
         const cleanPhoto = photo.replace(/\\/g, '/');
         const photoPath = cleanPhoto.startsWith('/') ? cleanPhoto : `/${cleanPhoto}`;
-        const baseUrl = `http://${window.location.hostname}:3001`;
+        const baseUrl = API_BASE_URL.replace('/api/v1', '');
         setUserPhoto(`${baseUrl}${photoPath}`);
       }
 
@@ -64,7 +64,7 @@ export default function StudentTopbar() {
       // WebSocket connection
       const userId = localStorage.getItem("user_id");
       if (userId) {
-        const baseUrl = `http://${window.location.hostname}:3001`;
+        const baseUrl = API_BASE_URL.replace('/api/v1', '');
         const socket = io(baseUrl, {
           query: { userId }
         });
@@ -230,7 +230,12 @@ export default function StudentTopbar() {
           >
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-md overflow-hidden">
               {userPhoto ? (
-                <img src={userPhoto} alt="Profile" className="w-full h-full object-cover" />
+                <img 
+                  src={userPhoto} 
+                  alt="Profile" 
+                  onError={() => setUserPhoto(null)}
+                  className="w-full h-full object-cover" 
+                />
               ) : (
                 userName.charAt(0).toUpperCase()
               )}

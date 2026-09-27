@@ -24,6 +24,9 @@ export default function LoginPage() {
   const [newPassword, setNewPassword] = useState("");
   const [isForgotLoading, setIsForgotLoading] = useState(false);
 
+  // Hidden Demo Credentials State
+  const [showDemoCreds, setShowDemoCreds] = useState(false);
+
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -219,10 +222,40 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="mt-8 text-center">
-              <p className="text-xs text-slate-500">
+            <div className="mt-8 text-center relative">
+              <p 
+                className="text-xs text-slate-500 cursor-pointer hover:text-slate-400 transition-colors inline-block"
+                onClick={() => setShowDemoCreds(!showDemoCreds)}
+                title="Siriyni ochish"
+              >
                 Copyright © {new Date().getFullYear()} KebyuEdu CRM. Barcha huquqlar himoyalangan.
               </p>
+
+              {/* Hidden Demo Credentials Card */}
+              {showDemoCreds && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-72 bg-[#1A2035]/90 backdrop-blur-xl border border-blue-500/30 p-5 rounded-2xl shadow-[0_10px_40px_-10px_rgba(59,130,246,0.5)] animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300 z-50">
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#1A2035]/90 border-b border-r border-blue-500/30 rotate-45"></div>
+                  <h4 className="text-sm font-bold text-white mb-3 flex items-center justify-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                    Test Akkauntlar
+                  </h4>
+                  <div className="space-y-3 text-left">
+                    <div className="bg-white/5 border border-white/10 p-3 rounded-xl hover:bg-white/10 transition-colors group">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs font-bold text-blue-400">SUPERADMIN</span>
+                        <button 
+                          onClick={() => { setPhone("+998933921177"); setPassword("123456"); setShowDemoCreds(false); }}
+                          className="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-500/40"
+                        >
+                          To'ldirish
+                        </button>
+                      </div>
+                      <p className="text-xs text-slate-300 font-mono tracking-wide">+998933921177</p>
+                      <p className="text-xs text-slate-500 font-mono">123456</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -54,6 +54,12 @@ api.interceptors.response.use(
         
         // If login or refresh fails with 401, don't loop
         if (originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/refresh')) {
+           if (error.response?.data?.message) {
+             const msg = error.response.data.message;
+             toast.error(Array.isArray(msg) ? msg.join(', ') : msg);
+           } else {
+             toast.error("Ruxsat etilmadi (401)");
+           }
            return Promise.reject(error);
         }
         
