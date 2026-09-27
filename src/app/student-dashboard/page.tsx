@@ -34,13 +34,8 @@ export default function StudentDashboardPage() {
       {/* Main Content - Grid Layout */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         
-        {/* Progress and Gamification (Left Side - 4 cols on large screens) */}
-        <div className="xl:col-span-4">
-          <ProgressCard />
-        </div>
-
-        {/* Schedule Calendar (Right Side - 8 cols) */}
-        <div className="xl:col-span-8">
+        {/* Schedule Calendar (Full Width) */}
+        <div className="xl:col-span-12">
           <ScheduleCalendar />
         </div>
 
