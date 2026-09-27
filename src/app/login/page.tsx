@@ -42,6 +42,7 @@ export default function LoginPage() {
           localStorage.setItem("refresh_token", response.refresh_token);
         }
         if (response.user) {
+          localStorage.setItem("user_id", response.user.id.toString());
           localStorage.setItem("user_name", `${response.user.first_name} ${response.user.last_name}`);
           localStorage.setItem("user_role", response.user.role || "Foydalanuvchi");
           if (response.user.photo) {

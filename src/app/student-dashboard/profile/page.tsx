@@ -112,8 +112,8 @@ export default function StudentProfilePage() {
   const getFullPhotoUrl = (path: string | undefined) => {
     if (!path) return null;
     if (path.startsWith("http")) return path;
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
-    return `${baseUrl.replace("/api/v1", "")}/${path}`;
+    const baseUrl = `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:3001`;
+    return `${baseUrl}/${path.replace(/\\/g, '/')}`;
   };
 
   if (loading) {

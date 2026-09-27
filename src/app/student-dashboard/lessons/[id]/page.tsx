@@ -84,8 +84,8 @@ export default function LessonDetailsPage() {
   const getAPIUrl = (path: string) => {
     if (!path) return "";
     if (path.startsWith("http")) return path;
-    const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
-    return `${baseURL.replace("/api/v1", "")}/${path}`;
+    const baseURL = `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:3001`;
+    return `${baseURL}/${path.replace(/\\/g, '/')}`;
   };
 
   if (loading) {

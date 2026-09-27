@@ -3,7 +3,8 @@
 import StatCard from "@/components/StatCard";
 import AccordionCard from "@/components/AccordionCard";
 import DashboardChart from "@/components/DashboardChart";
-import { GraduationCap, Users, CreditCard, AlertTriangle, Snowflake, Archive } from "lucide-react";
+import ProfitChart from "@/components/ProfitChart";
+import { GraduationCap, Users, CreditCard, AlertTriangle, Snowflake, Archive, Activity, FileCheck } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
 import { useEffect, useState } from "react";
@@ -48,11 +49,12 @@ export default function DashboardPage() {
     );
   }
 
-  const { financial, statistics, debtors, todaySchedule } = data || {
+  const { financial, statistics, debtors, todaySchedule, performance } = data || {
     financial: { totalRevenue: 0, monthlyRevenueChart: [], annualProfitChart: [], recentPayments: [] },
     statistics: { totalStudents: 0, frozenStudents: 0, archivedStudents: 0, activeGroups: 0 },
     debtors: [],
-    todaySchedule: []
+    todaySchedule: [],
+    performance: { averageAttendance: 0, totalHomeworksSubmitted: 0 }
   };
 
   return (
@@ -107,9 +109,26 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* Extra Performance Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+        <StatCard 
+          title="O'rtacha davomat (Oylik)" 
+          value={`${performance?.averageAttendance || "0"}%`} 
+          icon={Activity} 
+          iconColorClass="text-emerald-500 dark:text-emerald-400"
+        />
+        <StatCard 
+          title="Topshirilgan vazifalar" 
+          value={performance?.totalHomeworksSubmitted || "0"} 
+          icon={FileCheck} 
+          iconColorClass="text-indigo-500 dark:text-indigo-400"
+        />
+      </div>
+
       {/* Charts Section */}
-      <div className="pt-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
         <DashboardChart data={financial?.monthlyRevenueChart || []} />
+        <ProfitChart data={financial?.annualProfitChart || []} />
       </div>
 
       {/* Accordions Section */}
@@ -140,25 +159,6 @@ export default function DashboardPage() {
             </div>
           ) : (
             <p className="text-sm text-slate-500 dark:text-slate-400">{t("acc.payments.desc")} (Hozircha to'lovlar yo'q)</p>
-          )}
-        </AccordionCard>
-        
-        <AccordionCard title={t("acc.profit")}>
-          {financial?.annualProfitChart?.length > 0 ? (
-            <div className="space-y-3">
-              {financial.annualProfitChart.map((monthData: any, index: number) => (
-                <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
-                  <div className="font-medium text-slate-700 dark:text-slate-300">
-                    {monthData.name} oyi
-                  </div>
-                  <div className="font-bold text-indigo-600 dark:text-indigo-400">
-                    {monthData.total.toLocaleString()} so'm
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-slate-500 dark:text-slate-400">{t("acc.profit.desc")} (Ma'lumot yo'q)</p>
           )}
         </AccordionCard>
         

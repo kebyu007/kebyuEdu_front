@@ -103,7 +103,9 @@ export default function ScheduleCalendar() {
   });
 
   return (
-    <div className="w-full max-w-5xl bg-white dark:bg-[#121621] border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm flex flex-col lg:flex-row overflow-hidden min-h-[500px]">
+    <div className="w-full max-w-5xl bg-white/20 dark:bg-[#1A1A2E]/40 backdrop-blur-xl border border-white/30 dark:border-white/10 rounded-3xl shadow-xl overflow-hidden min-h-[500px] flex flex-col lg:flex-row relative">
+      {/* Glow Effects */}
+      <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-full blur-3xl pointer-events-none" />
       
       {loading ? (
         <div className="w-full h-full flex items-center justify-center min-h-[400px]">
@@ -112,7 +114,7 @@ export default function ScheduleCalendar() {
       ) : (
         <>
           {/* Calendar Side */}
-          <div className="flex-1 p-8 lg:p-10 border-b lg:border-b-0 lg:border-r border-slate-100 dark:border-white/5 flex flex-col">
+          <div className="flex-1 p-8 lg:p-10 border-b lg:border-b-0 lg:border-r border-white/30 dark:border-white/10 flex flex-col relative z-10">
             
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
@@ -188,7 +190,7 @@ export default function ScheduleCalendar() {
           </div>
 
           {/* Schedule Cards Side */}
-          <div className="w-full lg:w-[400px] p-8 lg:p-10 bg-slate-50/50 dark:bg-white/[0.02]">
+          <div className="w-full lg:w-[400px] p-8 lg:p-10 bg-white/10 dark:bg-black/20 backdrop-blur-md relative z-10">
             <div className="mb-6">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
                 Bugungi darslar
@@ -203,7 +205,7 @@ export default function ScheduleCalendar() {
                 todaysSchedule.map((schedule, idx) => (
                   <div 
                     key={schedule.id || idx}
-                    className="group relative bg-white dark:bg-[#1A2035] rounded-2xl p-4 border border-slate-200 dark:border-white/5 shadow-sm"
+                    className="group relative bg-white/40 dark:bg-black/40 backdrop-blur-md rounded-2xl p-4 border border-white/50 dark:border-white/10 shadow-sm transition-all hover:scale-[1.02] hover:shadow-md"
                   >
                     <div className={`absolute top-0 bottom-0 left-0 w-1 rounded-l-2xl ${
                       idx % 2 === 0 ? "bg-indigo-500" : "bg-emerald-500"

@@ -332,7 +332,7 @@ export default function LessonDetailsPage({ params }: { params: Promise<{ id: st
             <div className="flex items-center gap-4">
               {primaryTeacher?.photo ? (
                 <img 
-                  src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001'}/${primaryTeacher.photo.replace(/\\/g, '/')}`}
+                  src={`http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:3001/${primaryTeacher.photo.replace(/\\/g, '/')}`}
                   alt={`${primaryTeacher.first_name} ${primaryTeacher.last_name}`}
                   className="w-14 h-14 rounded-full object-cover border-2 border-indigo-500/30 shadow-md"
                 />
@@ -444,7 +444,7 @@ export default function LessonDetailsPage({ params }: { params: Promise<{ id: st
                           <div className="flex items-center gap-4">
                             {st.photo ? (
                               <img 
-                                src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001'}/${st.photo.replace(/\\/g, '/')}`}
+                                src={`http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:3001/${st.photo.replace(/\\/g, '/')}`}
                                 alt={`${st.first_name} ${st.last_name}`}
                                 className="w-10 h-10 rounded-full object-cover shadow-sm group-hover:scale-105 transition-transform"
                               />

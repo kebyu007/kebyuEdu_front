@@ -16,6 +16,10 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+import { io } from "socket.io-client";
+import toast from "react-hot-toast";
+import api from "@/services/api";
+
 export default function Topbar() {
   const { theme, setTheme } = useTheme();
   const { lang, setLang, t } = useLanguage();
@@ -23,6 +27,9 @@ export default function Topbar() {
   const [mounted, setMounted] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [hasNewNotifications, setHasNewNotifications] = useState(false);
+  const [notificationsMenuOpen, setNotificationsMenuOpen] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
   
   const [userRole, setUserRole] = useState("SUPERADMIN");
   const [userName, setUserName] = useState("Kebyu Edu");
@@ -40,8 +47,43 @@ export default function Topbar() {
       if (photo && photo !== "null" && photo !== "undefined") {
         const cleanPhoto = photo.replace(/\\/g, '/');
         const photoPath = cleanPhoto.startsWith('/') ? cleanPhoto : `/${cleanPhoto}`;
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001';
+        const baseUrl = `http://${window.location.hostname}:3001`;
         setUserPhoto(`${baseUrl}${photoPath}`);
+      }
+
+      // Fetch existing notifications
+      const fetchNotifications = async () => {
+        try {
+          const { default: api } = await import('@/services/api');
+          const res: any = await api.get('/notifications');
+          setNotifications(res || []);
+          if (res?.some((n: any) => !n.is_read)) {
+            setHasNewNotifications(true);
+          }
+        } catch (err) {}
+      };
+      fetchNotifications();
+
+      // WebSocket connection
+      const userId = localStorage.getItem("user_id");
+      if (userId) {
+        const baseUrl = `http://${window.location.hostname}:3001`;
+        const socket = io(baseUrl, {
+          query: { userId }
+        });
+
+        socket.on('new-notification', (notification) => {
+          toast.success(`Yangi xabar: ${notification.title}\n${notification.message}`, {
+            duration: 5000,
+            icon: '🔔',
+          });
+          setHasNewNotifications(true);
+          setNotifications(prev => [notification, ...prev]);
+        });
+
+        return () => {
+          socket.disconnect();
+        };
       }
     }
   }, []);
@@ -119,10 +161,53 @@ export default function Topbar() {
           <div className="h-5 w-px bg-slate-200 dark:bg-white/10 mx-1.5" />
 
           {/* Notifications */}
-          <button className="relative p-2.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-full transition-colors group">
-            <Bell size={20} className="group-hover:animate-wiggle" />
-            <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full shadow-[0_0_5px_rgba(239,68,68,0.8)]"></span>
-          </button>
+          <div className="relative">
+            <button 
+              onClick={() => {
+                setNotificationsMenuOpen(!notificationsMenuOpen);
+                setHasNewNotifications(false);
+              }}
+              className="relative p-2.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-full transition-colors group"
+            >
+              <Bell size={20} className={hasNewNotifications ? "animate-wiggle" : "group-hover:animate-wiggle"} />
+              {hasNewNotifications && (
+                <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full shadow-[0_0_5px_rgba(239,68,68,0.8)] animate-pulse"></span>
+              )}
+            </button>
+
+            {/* Notifications Dropdown */}
+            {notificationsMenuOpen && (
+              <div className="absolute top-full right-0 mt-3 w-80 bg-white/95 dark:bg-[#0f1523]/95 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                <div className="px-4 py-3 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50/50 dark:bg-white/5">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Xabarnomalar</h3>
+                </div>
+                <div className="max-h-[300px] overflow-y-auto no-scrollbar">
+                  {notifications.length > 0 ? (
+                    notifications.map((n, idx) => (
+                      <div key={idx} className={`p-4 border-b border-slate-100 dark:border-white/5 last:border-0 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer ${!n.is_read ? 'bg-indigo-50/50 dark:bg-indigo-500/10' : ''}`}
+                        onClick={async () => {
+                          if (!n.is_read) {
+                            try {
+                              const { default: api } = await import('@/services/api');
+                              await api.patch(`/notifications/${n.id}/read`);
+                              setNotifications(notifications.map(item => item.id === n.id ? {...item, is_read: true} : item));
+                            } catch(e) {}
+                          }
+                        }}
+                      >
+                        <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">{n.title}</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{n.message}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-6 text-center text-sm text-slate-500 dark:text-slate-400">
+                      Sizda yangi xabarnomalar yo'q.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
           
           <div className="h-5 w-px bg-slate-200 dark:bg-white/10 mx-1.5" />
 

@@ -622,7 +622,7 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
                   <div className="flex flex-wrap items-center justify-center gap-6 py-4">
                     {group.groupTeachers.map((gt: any) => {
                       const t = gt.teacher;
-                      const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001';
+                      const backendUrl = `http://${window.location.hostname}:3001`;
                       const photoUrl = t?.photo ? `${backendUrl}/${t.photo.replace(/\\/g, '/')}` : null;
                       return (
                         <div key={gt.id || t?.id} className="flex flex-col items-center gap-2">
@@ -1560,7 +1560,7 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
             {/* Video Player Edge to Edge */}
             <div className="aspect-video bg-black/80 w-full relative">
               <video 
-                src={activeVideo.url ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001'}/${activeVideo.url.replace(/\\/g, '/')}` : ''} 
+                src={activeVideo.url ? `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:3001/${activeVideo.url.replace(/\\/g, '/')}` : ''} 
                 controls 
                 className="w-full h-full object-contain" 
                 autoPlay 

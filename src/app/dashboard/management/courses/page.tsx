@@ -6,7 +6,7 @@ import { Plus, Trash2, Edit2, X, Search, Archive, ChevronLeft, ChevronRight, Upl
 import toast from "react-hot-toast";
 import api from "@/services/api";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+const API_BASE_URL = typeof window !== 'undefined' ? `http://${window.location.hostname}:3001/api/v1` : "http://localhost:3001/api/v1";
 
 interface Course {
   id: number;
