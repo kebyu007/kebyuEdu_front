@@ -23,7 +23,7 @@ export default function ScheduleCalendar() {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const response = await api.get("/students/me/dashboard");
+        const response: any = await api.get("/students/me/dashboard");
         if (response?.activeGroups) {
           setActiveGroups(response.activeGroups);
         }

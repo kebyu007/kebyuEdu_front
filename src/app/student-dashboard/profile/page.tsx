@@ -95,7 +95,7 @@ export default function StudentProfilePage() {
       const formData = new FormData();
       formData.append("photo", file);
 
-      const res = await api.patch("/auth/profile", formData);
+      const res: any = await api.patch("/auth/profile", formData);
       
       setProfile(res.user);
       toast.success("Rasm muvaffaqiyatli yuklandi!");

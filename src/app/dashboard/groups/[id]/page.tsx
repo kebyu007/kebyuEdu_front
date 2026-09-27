@@ -1362,7 +1362,7 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
                       toast.success("Davomat muvaffaqiyatli saqlandi!");
                       setPendingAttendance({});
                       // Refetch data
-                      const res = await api.get(`/groups/${resolvedParams.id}/attendance`);
+                      const res: any = await api.get(`/groups/${resolvedParams.id}/attendance`);
                       if (res) setAttendanceTable(res);
                     } catch (error) {
                       toast.error("Xatolik yuz berdi");

@@ -32,7 +32,7 @@ export default function StudentPaymentsPage() {
   useEffect(() => {
     const fetchPayments = async () => {
       try {
-        const res = await api.get("/payments/my-payments");
+        const res: any = await api.get("/payments/my-payments");
         setPayments(res);
       } catch (error) {
         console.error("To'lovlarni yuklashda xatolik:", error);

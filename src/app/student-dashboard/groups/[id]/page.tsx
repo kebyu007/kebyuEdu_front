@@ -33,6 +33,7 @@ interface GroupDetails {
     status: string;
   };
   lessons: Lesson[];
+  exams?: any[];
 }
 
 export default function GroupLessonsPage() {
