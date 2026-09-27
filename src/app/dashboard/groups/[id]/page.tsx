@@ -4,6 +4,7 @@ import { useState, use, useEffect, useMemo, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { ChevronLeft, BarChart2, X, ChevronRight, Check, User, Clock, CheckCircle2, MoreVertical, Calendar as CalendarIcon, MapPin, PlayCircle, Trash2, UploadCloud, TrendingUp, AlertCircle, Award, Plus, Minus, CheckSquare } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { motion, AnimatePresence } from "framer-motion";
 import api from "@/services/api";
 import toast from "react-hot-toast";
 
@@ -1881,23 +1882,37 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
       )}
       
       {/* Statistics Drawer */}
-      {isStatsOpen && (
-        <div className="fixed inset-0 z-[200] flex justify-end">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsStatsOpen(false)} />
-          <div className="relative w-full max-w-md bg-white dark:bg-slate-900 h-full shadow-2xl border-l border-slate-200 dark:border-white/10 flex flex-col animate-in slide-in-from-right duration-300">
+      <AnimatePresence>
+        {isStatsOpen && (
+          <div className="fixed inset-0 z-[200] flex justify-end overflow-hidden">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" 
+              onClick={() => setIsStatsOpen(false)} 
+            />
+            <motion.div 
+              initial={{ x: "100%", opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: "100%", opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="relative w-full max-w-md bg-white/95 dark:bg-[#0f1523]/95 backdrop-blur-2xl h-full shadow-[-20px_0_40px_rgba(0,0,0,0.1)] dark:shadow-[-20px_0_40px_rgba(0,0,0,0.5)] rounded-l-[2rem] border-l border-white/20 dark:border-white/10 flex flex-col overflow-hidden"
+            >
             
             {/* Drawer Header */}
-            <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/5">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-lg">
-                  <BarChart2 size={20} />
+            <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/80 dark:bg-white/[0.02]">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-2xl shadow-inner border border-indigo-100 dark:border-indigo-500/20">
+                  <BarChart2 size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Guruh statistikasi</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{mockGroup.name}</p>
+                  <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">Guruh statistikasi</h3>
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5">{mockGroup.name}</p>
                 </div>
               </div>
-              <button onClick={() => setIsStatsOpen(false)} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-all">
+              <button onClick={() => setIsStatsOpen(false)} className="p-2.5 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-full transition-all">
                 <X size={20} />
               </button>
             </div>
@@ -1907,11 +1922,11 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
               
               {/* Overall Performance */}
               <div className="space-y-4">
-                <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <TrendingUp size={16} className="text-indigo-500" />
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 px-1">
+                  <TrendingUp size={18} className="text-indigo-500" />
                   O'zlashtirish dinamikasi (Oxirgi 1 oy)
                 </h4>
-                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl p-4 h-64 shadow-sm">
+                <div className="bg-white/60 dark:bg-white/[0.02] backdrop-blur-md border border-slate-200/60 dark:border-white/5 rounded-3xl p-5 h-72 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] transition-all hover:bg-white/80 dark:hover:bg-white/[0.04]">
                   {statistics && (
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={statistics.performance || [
@@ -1919,18 +1934,21 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
                         { name: '2-hafta', ball: 72 },
                         { name: '3-hafta', ball: 85 },
                         { name: '4-hafta', ball: 82 },
-                      ]}>
+                      ]} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <defs>
                           <linearGradient id="colorBall" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4}/>
                             <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dx={-10} />
-                        <RechartsTooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                        <Area type="monotone" dataKey="ball" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorBall)" />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.15)" />
+                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8', fontWeight: 500 }} dy={10} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8', fontWeight: 500 }} dx={-10} />
+                        <RechartsTooltip 
+                          contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(15, 21, 35, 0.9)', backdropFilter: 'blur(8px)', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)', color: '#fff' }} 
+                          itemStyle={{ color: '#818cf8', fontWeight: 'bold' }}
+                        />
+                        <Area type="monotone" dataKey="ball" stroke="#818cf8" strokeWidth={4} fillOpacity={1} fill="url(#colorBall)" />
                       </AreaChart>
                     </ResponsiveContainer>
                   )}
@@ -1939,74 +1957,74 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
 
               {/* Attendance and Payment Pies */}
               {statistics && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm">
-                    <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">Davomat</h4>
-                    <div className="relative w-24 h-24">
+                <div className="grid grid-cols-2 gap-5">
+                  <div className="bg-white/60 dark:bg-white/[0.02] backdrop-blur-md border border-slate-200/60 dark:border-white/5 rounded-3xl p-5 flex flex-col items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] transition-all hover:bg-white/80 dark:hover:bg-white/[0.04]">
+                    <h4 className="text-sm font-bold text-slate-600 dark:text-slate-300 mb-3">Davomat</h4>
+                    <div className="relative w-28 h-28">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                          <Pie data={statistics.attendanceDistribution || [{value: 85}, {value: 15}]} innerRadius={35} outerRadius={45} dataKey="value" stroke="none">
+                          <Pie data={statistics.attendanceDistribution || [{value: 85}, {value: 15}]} innerRadius={42} outerRadius={55} dataKey="value" stroke="none" cornerRadius={4}>
                             <Cell fill="#10b981" />
-                            <Cell fill="#f1f5f9" />
+                            <Cell fill="rgba(148, 163, 184, 0.15)" />
                           </Pie>
                         </PieChart>
                       </ResponsiveContainer>
                       <div className="absolute inset-0 flex items-center justify-center flex-col">
-                        <span className="text-lg font-bold text-slate-900 dark:text-white">85%</span>
+                        <span className="text-xl font-black text-slate-900 dark:text-white">85%</span>
                       </div>
                     </div>
-                    <div className="mt-2 text-xs font-semibold text-emerald-600 flex items-center gap-1">
-                      <TrendingUp size={12} /> +5% o'sish
+                    <div className="mt-4 px-3 py-1.5 bg-emerald-500/10 rounded-full text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 border border-emerald-500/20">
+                      <TrendingUp size={14} /> +5% o'sish
                     </div>
                   </div>
 
-                  <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm">
-                    <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">To'lovlar</h4>
-                    <div className="relative w-24 h-24">
+                  <div className="bg-white/60 dark:bg-white/[0.02] backdrop-blur-md border border-slate-200/60 dark:border-white/5 rounded-3xl p-5 flex flex-col items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] transition-all hover:bg-white/80 dark:hover:bg-white/[0.04]">
+                    <h4 className="text-sm font-bold text-slate-600 dark:text-slate-300 mb-3">To'lovlar</h4>
+                    <div className="relative w-28 h-28">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                          <Pie data={statistics.paymentStatus || [{value: 18}, {value: 3}]} innerRadius={35} outerRadius={45} dataKey="value" stroke="none">
+                          <Pie data={statistics.paymentStatus || [{value: 18}, {value: 3}]} innerRadius={42} outerRadius={55} dataKey="value" stroke="none" cornerRadius={4}>
                             <Cell fill="#3b82f6" />
                             <Cell fill="#f43f5e" />
                           </Pie>
                         </PieChart>
                       </ResponsiveContainer>
                       <div className="absolute inset-0 flex items-center justify-center flex-col">
-                        <span className="text-lg font-bold text-slate-900 dark:text-white">18/21</span>
+                        <span className="text-xl font-black text-slate-900 dark:text-white">18/21</span>
                       </div>
                     </div>
-                    <div className="mt-2 text-xs font-semibold text-rose-600 flex items-center gap-1">
-                      <AlertCircle size={12} /> 3 ta qarzdor
+                    <div className="mt-4 px-3 py-1.5 bg-rose-500/10 rounded-full text-xs font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1.5 border border-rose-500/20">
+                      <AlertCircle size={14} /> 3 ta qarzdor
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Homework Stats */}
-              <div className="space-y-4">
-                <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <CheckCircle2 size={16} className="text-emerald-500" />
+              <div className="space-y-4 pb-6">
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 px-1">
+                  <CheckCircle2 size={18} className="text-emerald-500" />
                   Uyga vazifalar statistikasi
                 </h4>
-                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl p-4 space-y-4 shadow-sm">
+                <div className="bg-white/60 dark:bg-white/[0.02] backdrop-blur-md border border-slate-200/60 dark:border-white/5 rounded-3xl p-6 space-y-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] transition-all hover:bg-white/80 dark:hover:bg-white/[0.04]">
                   
                   <div>
-                    <div className="flex justify-between text-xs mb-1.5">
-                      <span className="font-semibold text-slate-600 dark:text-slate-300">Vaqtida topshirganlar (bajarilgan)</span>
-                      <span className="font-bold text-emerald-600">{statistics.homeworkCompletion?.[0]?.value || 0}%</span>
+                    <div className="flex justify-between text-sm mb-2.5">
+                      <span className="font-bold text-slate-700 dark:text-slate-300">Vaqtida topshirganlar <span className="text-xs font-medium text-slate-500">(bajarilgan)</span></span>
+                      <span className="font-black text-emerald-500">{statistics.homeworkCompletion?.[0]?.value || 0}%</span>
                     </div>
-                    <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                      <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${statistics.homeworkCompletion?.[0]?.value || 0}%` }}></div>
+                    <div className="h-2.5 w-full bg-slate-200/60 dark:bg-white/5 rounded-full overflow-hidden shadow-inner border border-slate-300/30 dark:border-white/5">
+                      <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" style={{ width: `${statistics.homeworkCompletion?.[0]?.value || 0}%` }}></div>
                     </div>
                   </div>
 
                   <div>
-                    <div className="flex justify-between text-xs mb-1.5">
-                      <span className="font-semibold text-slate-600 dark:text-slate-300">Topshirmaganlar</span>
-                      <span className="font-bold text-rose-600">{statistics.homeworkCompletion?.[1]?.value || 0}%</span>
+                    <div className="flex justify-between text-sm mb-2.5">
+                      <span className="font-bold text-slate-700 dark:text-slate-300">Topshirmaganlar</span>
+                      <span className="font-black text-rose-500">{statistics.homeworkCompletion?.[1]?.value || 0}%</span>
                     </div>
-                    <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                      <div className="h-full bg-rose-500 rounded-full" style={{ width: `${statistics.homeworkCompletion?.[1]?.value || 0}%` }}></div>
+                    <div className="h-2.5 w-full bg-slate-200/60 dark:bg-white/5 rounded-full overflow-hidden shadow-inner border border-slate-300/30 dark:border-white/5">
+                      <div className="h-full bg-gradient-to-r from-rose-400 to-rose-500 rounded-full shadow-[0_0_10px_rgba(244,63,94,0.5)]" style={{ width: `${statistics.homeworkCompletion?.[1]?.value || 0}%` }}></div>
                     </div>
                   </div>
 
@@ -2014,9 +2032,10 @@ export default function GroupDetailsPage({ params }: { params: Promise<{ id: str
               </div>
 
             </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* Delete Exam Modal */}
       {deleteExamId && (

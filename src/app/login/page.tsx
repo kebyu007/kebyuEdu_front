@@ -223,11 +223,16 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-8 text-center relative">
-              <p 
-                className="text-xs text-slate-500 cursor-pointer hover:text-slate-400 transition-colors inline-block"
+              <button 
+                type="button"
                 onClick={() => setShowDemoCreds(!showDemoCreds)}
-                title="Siriyni ochish"
+                className="flex items-center justify-center mx-auto gap-2 mb-6 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs font-medium text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 hover:border-blue-500/40 transition-all cursor-pointer shadow-[0_0_15px_rgba(59,130,246,0.15)]"
               >
+                <Key size={14} />
+                Demo (Test) akkauntlar
+              </button>
+
+              <p className="text-xs text-slate-600">
                 Copyright © {new Date().getFullYear()} KebyuEdu CRM. Barcha huquqlar himoyalangan.
               </p>
 

@@ -1,10 +1,73 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, MoreVertical, Users, GraduationCap, RefreshCw, X, Trash2, Edit2, AlertTriangle, Eye, ChevronDown, Search, Archive, RotateCcw, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
 import api from "@/services/api";
+
+function GlassSelect({ value, onChange, options, placeholder }: { value: string, onChange: (v: string) => void, options: {value: string, label: string}[], placeholder: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(o => o.value === value);
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-md text-slate-900 dark:text-white flex items-center justify-between cursor-pointer transition-all hover:bg-white/80 dark:hover:bg-white/10 shadow-sm"
+      >
+        <span className="text-sm font-medium">{selectedOption ? selectedOption.label : <span className="text-slate-400">{placeholder}</span>}</span>
+        <ChevronDown size={18} className={`text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+      </div>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="absolute z-50 w-full mt-2 py-2 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/95 dark:bg-[#0f1523]/95 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)] max-h-60 overflow-y-auto no-scrollbar"
+          >
+            <div 
+              onClick={() => { onChange(""); setIsOpen(false); }}
+              className="px-4 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer transition-colors"
+            >
+              {placeholder}
+            </div>
+            {options.map(opt => (
+              <div
+                key={opt.value}
+                onClick={() => { onChange(opt.value); setIsOpen(false); }}
+                className={`px-4 py-2.5 text-sm cursor-pointer transition-colors flex items-center justify-between ${
+                  value === opt.value 
+                    ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold' 
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 font-medium'
+                }`}
+              >
+                {opt.label}
+                {value === opt.value && <CheckCircle2 size={16} />}
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 const WEEKDAY_NAMES: { [key: number]: string } = {
   1: "Du",
@@ -654,23 +717,15 @@ export default function GroupsPage() {
             <label className="block text-sm font-semibold text-slate-800 dark:text-white mb-2">
               Kurs <span className="text-red-500">*</span>
             </label>
-            <div className="relative">
-              <select 
-                value={formData.course_id}
-                onChange={(e) => setFormData({...formData, course_id: e.target.value})}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-slate-900 dark:text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
-              >
-                <option value="" className="bg-white dark:bg-slate-800">Tanlang...</option>
-                {availableCourses.map(c => (
-                  <option key={c.id} value={c.id} className="bg-white dark:bg-slate-800">
-                    {c.name} ({c.duration_month ? `${c.duration_month} oy` : ''})
-                  </option>
-                ))}
-              </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                <ChevronDown size={18} />
-              </div>
-            </div>
+            <GlassSelect 
+              value={formData.course_id}
+              onChange={(val) => setFormData({...formData, course_id: val})}
+              placeholder="Tanlang..."
+              options={availableCourses.map(c => ({
+                value: c.id,
+                label: `${c.name} ${c.duration_month ? `(${c.duration_month} oy)` : ''}`
+              }))}
+            />
           </div>
 
           {/* Xona */}
@@ -678,23 +733,15 @@ export default function GroupsPage() {
             <label className="block text-sm font-semibold text-slate-800 dark:text-white mb-2">
               Xona <span className="text-red-500">*</span>
             </label>
-            <div className="relative">
-              <select 
-                value={formData.room_id}
-                onChange={(e) => setFormData({...formData, room_id: e.target.value})}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-slate-900 dark:text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
-              >
-                <option value="" className="bg-white dark:bg-slate-800">Tanlang...</option>
-                {availableRooms.map(r => (
-                  <option key={r.id} value={r.id} className="bg-white dark:bg-slate-800">
-                    {r.name} (Sig'im: {r.capacity || 20})
-                  </option>
-                ))}
-              </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                <ChevronDown size={18} />
-              </div>
-            </div>
+            <GlassSelect 
+              value={formData.room_id}
+              onChange={(val) => setFormData({...formData, room_id: val})}
+              placeholder="Tanlang..."
+              options={availableRooms.map(r => ({
+                value: r.id,
+                label: `${r.name} (Sig'im: ${r.capacity || 20})`
+              }))}
+            />
           </div>
 
           {/* Dars kunlari */}
